@@ -1,0 +1,56 @@
+---
+- name: Implement MPLS Segment Routing
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+
+  tasks:
+    # -----------------------------------------------------------
+    # Config push - SR is independent from ISIS: this playbook
+    # owns the segment-routing block and the "segment-routing mpls"
+    # line inside router isis exclusively. isis_config_xr.j2 /
+    # isis_config_xe.j2 must NOT contain any SR lines, or two
+    # tasks will fight over the same config tree.
+    # -----------------------------------------------------------
+    - name: Enable MPLS Segment Routing on ASR9k
+      cisco.iosxr.iosxr_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/SR_config_xr.j2
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Enable MPLS Segment Routing on CSR
+      cisco.ios.ios_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/SR_config_xe.j2
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Verify - raw show commands
+    # -----------------------------------------------------------
+    - name: Verify segment-routing state on ASR9k
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show isis segment-routing label table
+      register: sh_sr_result_xr
+      changed_when: false
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Verify segment-routing state on CSR
+      cisco.ios.ios_command:
+        commands:
+          - show isis segment-routing connected-sid
+      register: sh_sr_result_xe
+      changed_when: false
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Print verification output
+    # -----------------------------------------------------------
+    - name: Printing SR verification ASR9k
+      ansible.builtin.debug:
+        msg: "{{ sh_sr_result_xr.stdout_lines }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Printing SR verification CSR
+      ansible.builtin.debug:
+        msg: "{{ sh_sr_result_xe.stdout_lines }}"
+      when: ansible_network_os == "cisco.ios.ios"

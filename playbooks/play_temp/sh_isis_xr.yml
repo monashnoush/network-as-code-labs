@@ -1,0 +1,47 @@
+{
+  "isis": {
+    "CORE": {
+      "vrf": {
+        "default": {
+          "interfaces": {
+            "Bundle-Ether111": {
+              "neighbors": {
+                "P02_xe": {
+                  "holdtime": "21",
+                  "ietf_nsf": "Capable",
+                  "snpa": "*PtoP*",
+                  "state": "Up",
+                  "type": "L2"
+                }
+              }
+            },
+            "Bundle-Ether112": {
+              "neighbors": {
+                "PE02_xe": {
+                  "holdtime": "24",
+                  "ietf_nsf": "Capable",
+                  "snpa": "*PtoP*",
+                  "state": "Up",
+                  "type": "L2"
+                }
+              }
+            },
+            "GigabitEthernet0/0/0/1": {
+              "neighbors": {
+                "RR_9k": {
+                  "holdtime": "28",
+                  "ietf_nsf": "Capable",
+                  "snpa": "*PtoP*",
+                  "state": "Up",
+                  "type": "L2"
+                }
+              }
+            }
+          },
+          "total_neighbor_count": 3
+        }
+      }
+    }
+  }
+}
+

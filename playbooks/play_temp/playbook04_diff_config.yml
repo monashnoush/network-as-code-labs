@@ -1,0 +1,39 @@
+---
+-   name: Training Module04 config_diff_option
+    hosts: TIS,TAJ
+    gather_facts: false
+    tasks:
+      - name: Configure intetface loopback 100
+        cisco.iosxr.iosxr_config:
+          lines:
+            - description [ANSIBLE_config]
+          parents:
+            - interface loopback 100
+          before:
+            - no interface loopback 100
+          after: 
+            - no shutdown
+        when: ansible_network_os=='cisco.iosxr.iosxr'
+        register: intf100_configxr
+      - name: Configure interface loopback 100
+        cisco.ios.ios_config:
+          lines:
+            - description [ANSIBLE_config]
+          diff_against: running
+          parents:
+            - interface loopback 100
+          before:
+            - no interface loopback 100
+          after:
+            -  no shut
+        when: ansible_network_os=='cisco.ios.ios'
+        register: intf100_configos
+      
+      - name: Printing configuration
+        ansible.builtin.debug:
+          msg:
+            - '######################################'
+            - '{{inventory_hostname}}'
+            - '{{ intf100_configxr }}'
+            - '{{ intf100_configos }}'
+            - '######################################'

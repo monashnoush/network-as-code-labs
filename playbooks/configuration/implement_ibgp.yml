@@ -1,0 +1,85 @@
+---
+- name: Implement bgp protocol
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+
+  tasks:
+  
+    - name: Initialize BGP process on (IOS-XR hub)
+      cisco.iosxr.iosxr_config:
+        lines:
+          - "router bgp {{ bgp_asn }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+      
+    - name: Apply full bgp configuration on RR (IOS-XR hub)
+      cisco.iosxr.iosxr_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/bgp_config_RR_xr.j2
+      when:
+        - ansible_network_os == "cisco.iosxr.iosxr"
+        - inventory_hostname == "RR_9k"
+    - name: Apply bgp configuration on ASR9k clients (IOS-XR)
+      cisco.iosxr.iosxr_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/bgp_config_xr.j2
+      when:
+        - ansible_network_os == "cisco.iosxr.iosxr"
+        - inventory_hostname != "RR_9k"
+
+    - name: Apply bgp configuration on CSR clients (IOS-XE)
+      cisco.ios.ios_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/bgp_config_xe.j2
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Verify - raw show commands
+    # -----------------------------------------------------------
+    - name: Verify bgp configuration and neighboring on ASR9k
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show bgp summary
+      register: sh_bgp_result_xr
+      changed_when: false
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Verify bgp configuration and neighboring on CSR
+      cisco.ios.ios_command:
+        commands:
+          - show bgp summary
+      register: sh_bgp_result_xe
+      changed_when: false
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Count established neighbors via regex - line ends in digits
+    # (prefix count) when Established, or a state word when not.
+    # -----------------------------------------------------------
+    - name: Count established bgp neighbors (XR)
+      ansible.builtin.set_fact:
+        bgp_established_count: "{{ (sh_bgp_result_xr.stdout_lines[0] | select('search', '^\\s*\\d+\\.\\d+\\.\\d+\\.\\d+.*\\d+\\s*$') | list) | length }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Count established bgp neighbors (IOS)
+      ansible.builtin.set_fact:
+        bgp_established_count: "{{ (sh_bgp_result_xe.stdout_lines[0] | select('search', '^\\s*\\d+\\.\\d+\\.\\d+\\.\\d+.*\\d+\\s*$') | list) | length }}"
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Print full neighbor table
+    # -----------------------------------------------------------
+    - name: Printing bgp verification ASR9k
+      ansible.builtin.debug:
+        msg: "{{ sh_bgp_result_xr.stdout_lines[0] }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Printing bgp verification CSR
+      ansible.builtin.debug:
+        msg: "{{ sh_bgp_result_xe.stdout_lines[0] }}"
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Print count summary
+    # -----------------------------------------------------------
+    - name: Printing bgp established neighbor count summary
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} has {{ bgp_established_count }} BGP neighbor(s) Established"

@@ -1,0 +1,17 @@
+{% set loopback = l3_interfaces | selectattr('name', 'equalto', 'Loopback0') | first %}
+segment-routing mpls
+ set-attributes
+  address-family ipv4
+   sr-label-preferred
+   explicit-null
+  exit-address-family
+ !
+ connected-prefix-sid-map
+  address-family ipv4
+   {{ loopback.ipv4[0].address }} absolute {{ sid_id }} range 1
+  exit-address-family
+ !
+!
+router isis {{ isis_proc | default('CORE') }}
+ segment-routing mpls
+!

@@ -1,0 +1,4 @@
+hostname {{ inventory_hostname | upper }}
+interface {{ Loopback_name }}
+ ipv4 add {{ Loopback_ip}}
+ description {{ Loopback_des }}

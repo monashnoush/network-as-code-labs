@@ -1,0 +1,5 @@
+{% for intf in interfaces %}
+interface {{ intf.name }}
+    description {{ intf.description | default ('managed by ansible') }}
+    ipv4 address {{ intf.ip }} {{ intf.mask }}
+{% endfor %}

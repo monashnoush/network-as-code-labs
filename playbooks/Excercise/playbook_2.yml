@@ -1,0 +1,26 @@
+---
+- name: Parse Data 
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Parse show version
+      ansible.utils.cli_parse:
+        command: show version
+        parser: 
+          name: ansible.netcommon.pyats
+        set_fact: show_ver_parse
+
+    - name: Display show version output
+      ansible.builtin.debug:
+        msg: "{{ show_ver_parse }}"
+    
+    - name: Parse BGP summary
+      ansible.utils.cli_parse:
+        command: show bgp summary 
+        parser: 
+          name: ansible.netcommon.pyats
+        set_fact: sh_bgp 
+
+    - name: Display BGP summary output
+      ansible.builtin.debug:
+        msg: "{{ sh_bgp }}"

@@ -1,0 +1,47 @@
+{
+  "module_name": {
+    "0/0": {
+      "descr": "Cisco IOS-XRv 9000 Centralized Line Card",
+      "pid": "R-IOSXRV9000-LC-C",
+      "sn": "E8D3F0D17DF",
+      "vid": "V01"
+    },
+    "0/0/0": {
+      "descr": "N/A",
+      "pid": "PORT-1G-NIC",
+      "sn": "N/A",
+      "vid": "N/A"
+    },
+    "0/0/1": {
+      "descr": "N/A",
+      "pid": "PORT-1G-NIC",
+      "sn": "N/A",
+      "vid": "N/A"
+    },
+    "0/0/2": {
+      "descr": "N/A",
+      "pid": "PORT-1G-NIC",
+      "sn": "N/A",
+      "vid": "N/A"
+    },
+    "0/0/3": {
+      "descr": "N/A",
+      "pid": "PORT-1G-NIC",
+      "sn": "N/A",
+      "vid": "N/A"
+    },
+    "0/RP0": {
+      "descr": "Cisco IOS-XRv 9000 Centralized Route Processor",
+      "pid": "R-IOSXRV9000-RP-C",
+      "sn": "C5A7801AFEC",
+      "vid": "V01"
+    },
+    "Rack 0": {
+      "descr": "Cisco IOS-XRv 9000 Centralized Virtual Router",
+      "pid": "R-IOSXRV9000-CC",
+      "sn": "0FD6221FF98",
+      "vid": "V01"
+    }
+  }
+}
+

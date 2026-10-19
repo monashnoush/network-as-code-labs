@@ -1,0 +1,15 @@
+--- snapshots/bgp_pre/bgp_iosxr_xrv1_ops.txt
++++ snapshots/bgp_post/bgp_iosxr_xrv1_ops.txt
+ info:
+  instance:
+   default:
+    vrf:
+     default:
+      neighbor:
+       10.0.0.100:
+-       session_state: idle
++       session_state: established
++       bgp_negotiated_capabilities:
++        four_octets_asn: advertised received
++        route_refresh: advertised received
+-       shutdown: True

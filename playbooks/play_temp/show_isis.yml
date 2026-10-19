@@ -1,0 +1,37 @@
+{
+  "isis": {
+    "CORE": {
+      "neighbors": {
+        "P01_9k": {
+          "type": {
+            "L2": {
+              "interfaces": {
+                "Port-channel12": {
+                  "circuit_id": "00",
+                  "holdtime": "29",
+                  "ip_address": "10.1.12.1",
+                  "state": "UP"
+                }
+              }
+            }
+          }
+        },
+        "RR_9k": {
+          "type": {
+            "L2": {
+              "interfaces": {
+                "GigabitEthernet1": {
+                  "circuit_id": "00",
+                  "holdtime": "26",
+                  "ip_address": "10.12.10.2",
+                  "state": "UP"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

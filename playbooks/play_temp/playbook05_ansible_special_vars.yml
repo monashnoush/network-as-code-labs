@@ -1,0 +1,19 @@
+---
+- name: Training Module05 - Special vars
+  hosts: all
+  gather_facts: true  # Enable facts to see more variables
+
+  tasks:
+    - name: Printing special vars
+      ansible.builtin.debug:
+        msg:
+          - "========================================"
+          - "Special Variables for {{ inventory_hostname }}"
+          - "========================================"
+          - "Hostvars: {{ hostvars }}"
+          - "========================================"
+          - "Inventory Hostname: {{ inventory_hostname }}"
+          - "Ansible Host: {{ ansible_host }}"
+          - "Playbook Dir: {{ playbook_dir }}"
+          - "Role Path: {{ role_path }}"
+          - "========================================"

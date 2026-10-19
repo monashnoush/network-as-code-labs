@@ -1,0 +1,58 @@
+---
+- name: Implement isis protocol
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+
+  tasks:
+    - name: Apply isis configuration on ASR9k
+      cisco.iosxr.iosxr_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/isis_iosxr.j2
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Apply isis configuration on CSR
+      cisco.ios.ios_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/isis_config.j2
+      when: ansible_network_os == "cisco.ios.ios"
+
+    - name: Gather and parse isis neighbors (XR)
+      ansible.utils.cli_parse:
+        command: show isis neighbors
+        parser:
+          name: ansible.netcommon.pyats
+      register: parsed_isis_xr
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Gather and parse isis neighbors (IOS-XE)
+      ansible.utils.cli_parse:
+        command: show isis neighbors
+        parser:
+          name: ansible.netcommon.pyats
+          os: iosxe
+      register: parsed_isis_xe
+      when: ansible_network_os == "cisco.ios.ios"
+
+    - name: Display parsed structure (XR)
+      ansible.builtin.debug:
+        var: parsed_isis_xr.parsed
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Display parsed structure (IOS-XE)
+      ansible.builtin.debug:
+        var: parsed_isis_xe.parsed
+      when: ansible_network_os == "cisco.ios.ios"
+
+    - name: Count isis neighbors (XR)
+      ansible.builtin.set_fact:
+        isis_neighbor_count: "{{ (parsed_isis_xr.parsed | community.general.json_query('isis.*.vrf[].*[].interfaces[].*[].neighbors')) | default([]) | map('length') | sum }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Count isis neighbors (IOS-XE)
+      ansible.builtin.set_fact:
+        isis_neighbor_count: "{{ (parsed_isis_xe.parsed | community.general.json_query('isis.*.neighbors')) | default([]) | map('length') | sum }}"
+      when: ansible_network_os == "cisco.ios.ios"
+
+    - name: Print isis neighbor count
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} has {{ isis_neighbor_count }} ISIS neighbor(s)"

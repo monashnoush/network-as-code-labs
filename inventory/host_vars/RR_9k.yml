@@ -1,0 +1,74 @@
+
+# Routing Identifiers
+host_name: RR_9k
+router_id: "10.0.0.10"
+sid_id: "16010"
+isis_net: "49.0001.0000.0000.0010.00"
+
+# 1. Layer 1 / Layer 2 Interface Properties (cisco.iosxr.iosxr_interfaces)
+l2_interfaces:
+  - name: Loopback0
+    description: "Router_id"
+    enabled: true
+
+  - name: GigabitEthernet0/0/0/1
+    description: "TO_P02_xe"
+    enabled: true
+
+  - name: GigabitEthernet0/0/0/2
+    description: "TO_P01_9k"
+    enabled: true
+
+  - name: GigabitEthernet0/0/0/3
+    description: "TO_PE01_9k"
+    enabled: true
+
+  - name: GigabitEthernet0/0/0/4
+    description: "TO_PE02_xe"
+    enabled: true
+
+  - name: MgmtEth0/RP0/CPU0/0
+    description: "Out-of-Band Management"
+    enabled: true
+
+# 2. Layer 3 IP Properties  (cisco.iosxr.iosxr_l3_interfaces)
+l3_interfaces:
+  - name: Loopback0
+    ipv4:
+      - address: 10.0.0.10/32
+
+  - name: GigabitEthernet0/0/0/1
+    ipv4:
+      - address: 10.11.10.2/30
+  
+  - name: GigabitEthernet0/0/0/2
+    ipv4:
+      - address: 10.1.10.2/30
+  
+  - name: GigabitEthernet0/0/0/3
+    ipv4:
+      - address: 10.2.10.2/30
+    
+  - name: GigabitEthernet0/0/0/4
+    ipv4:
+      - address: 10.12.10.2/30
+
+  - name: MgmtEth0/RP0/CPU0/0
+    ipv4:
+      - address: 192.168.0.10/24
+
+
+# 4. IS-IS Routing Process Interface Bindings
+isis_interfaces:
+  - name: Loopback0
+    passive: true
+    circuit_type: level-2-only
+  - name: GigabitEthernet0/0/0/1
+    point_to_point: true
+  - name: GigabitEthernet0/0/0/2
+    point_to_point: true
+  - name: GigabitEthernet0/0/0/3
+    point_to_point: true
+  - name: GigabitEthernet0/0/0/4
+    point_to_point: true
+ 

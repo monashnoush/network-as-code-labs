@@ -1,0 +1,13 @@
+{% if bgp_asn is defined %}
+{% set loopback = l3_interfaces | selectattr('name', 'equalto', 'Loopback0') | first %}
+router bgp {{ bgp_asn }}
+    bgp router-id {{ loopback.ipv4[0].address | ansible.utils.ipaddr('address') }}
+    address-family ipv4 unicast
+    neighbor {{ RR_ip }}
+        remote-as {{ bgp_asn }}
+        update-source {{ loopback.name }}
+        address-family ipv4 unicast
+        !
+    !
+    address-family ipv4 unicast
+{% endif %}

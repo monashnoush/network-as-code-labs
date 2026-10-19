@@ -1,0 +1,47 @@
+testbed:
+  name: Generated_Ansible_Testbed
+  credentials:
+    default:
+      username: "nashnoush"
+      password: "nashnoush"
+devices:
+  RR_9k:
+    os: "iosxr"
+    type: router
+    connections:
+      cli:
+        protocol: ssh
+        ip: "192.168.0.10"
+        port: 22
+  P01_9k:
+    os: "iosxr"
+    type: router
+    connections:
+      cli:
+        protocol: ssh
+        ip: "192.168.0.1"
+        port: 22
+  PE01_9k:
+    os: "iosxr"
+    type: router
+    connections:
+      cli:
+        protocol: ssh
+        ip: "192.168.0.2"
+        port: 22
+  P02_xe:
+    os: "iosxe"
+    type: router
+    connections:
+      cli:
+        protocol: ssh
+        ip: "192.168.0.11"
+        port: 22
+  PE02_xe:
+    os: "iosxe"
+    type: router
+    connections:
+      cli:
+        protocol: ssh
+        ip: "192.168.0.12"
+        port: 22

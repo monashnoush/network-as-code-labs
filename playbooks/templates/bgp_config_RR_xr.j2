@@ -1,0 +1,17 @@
+{% if inventory_hostname == 'RR_9k' %}
+router bgp {{ bgp_asn }}
+    bgp router-id {{ router_id }}
+    bgp cluster-id {{ router_id }}
+    address-family ipv4 unicast
+    !
+    {% for router in groups['all'] if router != 'RR_9k' %}
+    {% if hostvars[router].router_id is defined %}
+    neighbor {{ hostvars[router].router_id }}
+        remote-as {{ bgp_asn }}
+        update-source Loopback0
+        address-family ipv4 unicast
+        !
+    !
+    {% endif %}
+    {% endfor %}
+{% endif %}

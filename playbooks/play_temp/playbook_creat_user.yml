@@ -1,0 +1,31 @@
+---
+- name: Securely Add Local User Account on Cisco IOS-XR
+  hosts: IOSXR_group
+  gather_facts: false
+
+  vars_prompt:
+    - name: new_username
+      prompt: "Enter new local username"
+      private: false
+
+    - name: new_password
+      prompt: "Enter password for new user"
+      private: true 
+
+  tasks:
+    - name: Create local user configuration via Jinja2 template
+      cisco.iosxr.iosxr_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/adding_account_iosxr.j2
+
+    - name: Verfy if user is created
+      cisco.iosxr.iosxr_command:
+        commands: "show run username | inc {{ new_username }}"
+      register: sh_user
+      changed_when: false
+
+    - name: Assert user exists in running configuration
+      ansible.builtin.assert:
+        that:
+          - new_username in sh_user.stdout[0]
+        success_msg: "SUCCESS: User '{{ new_username }}' was created successfully on {{ inventory_hostname }}!"
+        fail_msg: "FAILED: User '{{ new_username }}' was not found in running configuration on {{ inventory_hostname }}."

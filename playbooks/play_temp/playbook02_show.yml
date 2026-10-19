@@ -1,0 +1,27 @@
+---
+- name: Training Module 1 - Module Gathering and filtering Cisco facts
+  hosts: ROUTERS
+  gather_facts: false
+
+  tasks:
+    - name: IOSXR show cmd
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show version
+          - show ipv4 int br
+      when: ansible_network_os=='cisco.iosxr.iosxr'
+      register: iosxr_output
+    
+    - name: IOS show cmd
+      cisco.ios.ios_command:
+        commands:
+          - show version
+          - show ip int br
+      when: ansible_network_os=='cisco.iosx.iosx'
+      register: ios_output
+
+    - name: printing xr_output
+      ansible.builtin.debug:
+        msg:
+        - "{{ iosxr_output }}"
+        - "{{ iosxr_output }}"

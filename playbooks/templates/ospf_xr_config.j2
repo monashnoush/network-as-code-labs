@@ -1,0 +1,11 @@
+router ospf {{ ospf.process_id }}
+    router-id {{interfaces[0].ip}}
+    address-family ipv4 unicast
+        area 0
+            network point-to-point
+            {% for intf in interfaces if intf != 'Loopback 0' %}
+            interface {{intf.name}}
+            {%endfor%}
+            interface loopback 0
+                passive
+            

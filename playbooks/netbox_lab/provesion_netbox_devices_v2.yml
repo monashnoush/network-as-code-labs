@@ -1,0 +1,314 @@
+---
+- name: Provision NetBox taxonomy + device objects from live IOS-XR routers (TEST on PRODUCTION NetBox)
+  hosts: IOSXR_group
+  gather_facts: false
+  vars:
+    netbox_url: "http://localhost:8000"
+    netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+    netbox_site_slug: "{{ inventory_hostname }}"
+    netbox_device_role_slug: "test-network-devices"
+    netbox_device_name: "{{ inventory_hostname }}"
+
+  tasks:
+    # ---------- Device facts ----------
+    - name: Gather IOS-XR facts
+      cisco.iosxr.iosxr_facts:
+        gather_subset: min
+      register: device_facts
+      changed_when: false
+
+    # ---------- Dynamic manufacturer / platform / device type from gathered/inventory data ----------
+    - name: Derive manufacturer, platform, and device type from device data
+      set_fact:
+        netbox_manufacturer_name: "TEST_{{ ansible_network_os.split('.')[0] | capitalize }}"
+        netbox_manufacturer_slug: "test-{{ ansible_network_os.split('.')[0] }}"
+        netbox_platform_name: "TEST_{{ ansible_network_os.split('.')[0] }}-{{ ansible_network_os.split('.')[1] }}"
+        netbox_platform_slug: "test-{{ ansible_network_os.split('.')[0] }}-{{ ansible_network_os.split('.')[1] }}"
+        netbox_device_type_model: "TEST_{{ device_facts.ansible_facts.ansible_net_model | default('UNKNOWN') }}"
+        netbox_device_type_slug: "test-{{ device_facts.ansible_facts.ansible_net_model | default('unknown') | lower | regex_replace('[^a-z0-9]+', '-') }}"
+
+    # ---------- Hardware inventory — collected early so optic types are known before interface creation ----------
+    - name: Collect and parse hardware inventory via pyATS/Genie
+      ansible.utils.cli_parse:
+        command: show inventory
+        parser:
+          name: ansible.netcommon.pyats
+      register: hw_inventory_raw
+      changed_when: false
+
+    - name: DEBUG - inspect raw module descriptions (remove once optic wording confirmed)
+      debug:
+        msg: "{{ item.key }}: {{ item.value.descr | default('') }}"
+      loop: "{{ hw_inventory_raw.parsed.module_name | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    - name: Normalize discovered hardware modules
+      set_fact:
+        discovered_modules: >-
+          {{ discovered_modules | default([]) + [{
+            'name': item.key,
+            'descr': item.value.descr | default(''),
+            'pid': item.value.pid | default(''),
+            'sn': item.value.sn | default('')
+          }] }}
+      loop: "{{ hw_inventory_raw.parsed.module_name | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      when: item.value.pid is defined and item.value.pid != '' and item.value.pid != 'N/A'
+
+    - name: Build optic/transceiver type map from inventory descriptions (best-effort, unconfirmed wording)
+      set_fact:
+        interface_optic_type_map: >-
+          {{ interface_optic_type_map | default({}) | combine({
+              item.name: (
+                '100gbase-x-cfp2' if ('CFP2' in (item.descr | upper) or 'QSFP28' in (item.descr | upper)) else
+                '40gbase-x-qsfpp' if ('QSFP+' in (item.descr | upper) or 'QSFPP' in (item.descr | upper)) else
+                '10gbase-x-sfpp' if ('SFP+' in (item.descr | upper)) else
+                '1000base-t' if ('SFP' in (item.descr | upper)) else
+                None
+              )
+            }) }}
+      loop: "{{ discovered_modules }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    # ---------- NetBox taxonomy + device ----------
+    - name: NetBox shared taxonomy (site/manufacturer/role/platform — same across all hosts)
+      delegate_to: localhost
+      block:
+        - name: Ensure TEST site exists
+          netbox.netbox.netbox_site:
+            netbox_url: "{{ netbox_url }}"
+            netbox_token: "{{ netbox_token }}"
+            validate_certs: false
+            data:
+              name: "TEST_KM4"
+              slug: "{{ netbox_site_slug }}"
+              status: staging
+              description: "Fully isolated test — no shared objects with production"
+            state: present
+          run_once: true
+
+        - name: Ensure TEST device role exists
+          netbox.netbox.netbox_device_role:
+            netbox_url: "{{ netbox_url }}"
+            netbox_token: "{{ netbox_token }}"
+            validate_certs: false
+            data:
+              name: "TEST_network-devices"
+              slug: "{{ netbox_device_role_slug }}"
+              color: "2196f3"
+            state: present
+          run_once: true
+
+    - name: Ensure manufacturer exists for this host's OS vendor
+      delegate_to: localhost
+      netbox.netbox.netbox_manufacturer:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          name: "{{ netbox_manufacturer_name }}"
+          slug: "{{ netbox_manufacturer_slug }}"
+        state: present
+
+    - name: Ensure platform exists for this host's OS
+      delegate_to: localhost
+      netbox.netbox.netbox_platform:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          name: "{{ netbox_platform_name }}"
+          slug: "{{ netbox_platform_slug }}"
+          manufacturer:
+            slug: "{{ netbox_manufacturer_slug }}"
+        state: present
+
+    - name: Ensure device type exists for this host's actual model
+      delegate_to: localhost
+      netbox.netbox.netbox_device_type:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          model: "{{ netbox_device_type_model }}"
+          slug: "{{ netbox_device_type_slug }}"
+          manufacturer:
+            slug: "{{ netbox_manufacturer_slug }}"
+          u_height: 21
+        state: present
+
+    - name: Create or update TEST device
+      delegate_to: localhost
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          name: "{{ netbox_device_name }}"
+          device_type:
+            slug: "{{ netbox_device_type_slug }}"
+          device_role:
+            slug: "{{ netbox_device_role_slug }}"
+          platform:
+            slug: "{{ netbox_platform_slug }}"
+          site:
+            slug: "{{ netbox_site_slug }}"
+          serial: "{{ device_facts.ansible_facts.ansible_net_serialnum | default('') }}"
+          status: staged
+        state: present
+
+    # ---------- Interfaces (description/enabled/MTU + type: inventory-derived first, name-based fallback) ----------
+    - name: Collect and parse interface details via pyATS/Genie
+      ansible.utils.cli_parse:
+        command: show interfaces
+        parser:
+          name: ansible.netcommon.pyats
+      register: iface_raw
+      changed_when: false
+
+    - name: Create or update interfaces on TEST device
+      delegate_to: localhost
+      netbox.netbox.netbox_device_interface:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          device: "{{ netbox_device_name }}"
+          name: "{{ item.key }}"
+          description: "{{ item.value.description | default(omit) }}"
+          enabled: "{{ item.value.enabled | default(true) }}"
+          mtu: "{{ item.value.mtu | default(omit) }}"
+          type: >-
+            {%- set slot = item.key | regex_replace('^[A-Za-z\-]+', '') -%}
+            {%- if slot in interface_optic_type_map and interface_optic_type_map[slot] -%}
+            {{ interface_optic_type_map[slot] }}
+            {%- elif 'HundredGigE' in item.key -%}
+            100gbase-x-cfp2
+            {%- elif 'FortyGigE' in item.key -%}
+            40gbase-x-qsfpp
+            {%- elif 'TenGigE' in item.key -%}
+            10gbase-x-sfpp
+            {%- elif 'GigabitEthernet' in item.key -%}
+            1000base-t
+            {%- elif 'Bundle-Ether' in item.key -%}
+            lag
+            {%- elif 'Management' in item.key -%}
+            1000base-t
+            {%- else -%}
+            virtual
+            {%- endif -%}
+          mgmt_only: "{{ true if 'Management' in item.key else false }}"
+        state: present
+      loop: "{{ iface_raw.parsed | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+
+    # ---------- VRF discovery ----------
+    - name: Collect running-config for interfaces
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show running-config interface
+      register: running_config_text
+      changed_when: false
+
+    - name: Extract per-interface config blocks
+      set_fact:
+        interface_blocks: "{{ running_config_text.stdout[0] | regex_findall('(?s)interface (\\S+)\\n(.*?)\\n!') }}"
+
+    - name: Build interface-to-VRF lookup
+      set_fact:
+        interface_vrf_map: >-
+          {{ interface_vrf_map | default({}) | combine(
+            {item.0: (vrf_match.0 if vrf_match | length > 0 else None)}
+          ) }}
+      vars:
+        vrf_match: "{{ item.1 | regex_findall(' vrf (\\S+)') }}"
+      loop: "{{ interface_blocks }}"
+      loop_control:
+        label: "{{ item.0 }}"
+
+    - name: Ensure each discovered VRF exists in NetBox
+      delegate_to: localhost
+      netbox.netbox.netbox_vrf:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          name: "{{ item }}"
+        state: present
+      loop: "{{ interface_vrf_map.values() | select('!=', None) | unique | list }}"
+
+    # ---------- IP/mask + VRF, deduplicated ----------
+    - name: Build normalized IP list with real prefix, VRF, and dedup key
+      set_fact:
+        discovered_ips_final: "{{ discovered_ips_final | default([]) + [entry] }}"
+      vars:
+        vrf_value: "{{ interface_vrf_map.get(item.key, None) }}"
+        entry:
+          interface: "{{ item.key }}"
+          address: "{{ item.value.ipv4.keys() | list | first }}"
+          vrf: "{{ vrf_value }}"
+          dedup_key: "{{ item.value.ipv4.keys() | list | first }}|{{ vrf_value | default('global', true) }}"
+      loop: "{{ iface_raw.parsed | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      when: item.value.ipv4 is defined and (item.value.ipv4.keys() | list | length > 0)
+
+    - name: Deduplicate discovered IPs by address+VRF combo
+      set_fact:
+        discovered_ips_final: "{{ discovered_ips_final | unique(attribute='dedup_key') }}"
+
+    - name: Create or update IPs with real mask and VRF on TEST device
+      delegate_to: localhost
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          address: "{{ item.address }}"
+          vrf: "{{ item.vrf if item.vrf else omit }}"
+          assigned_object:
+            device: "{{ netbox_device_name }}"
+            name: "{{ item.interface }}"
+          status: active
+        state: present
+      loop: "{{ discovered_ips_final }}"
+      loop_control:
+        label: "{{ item.interface }}"
+
+    - name: Set Loopback0 as Primary IPv4 on TEST device
+      delegate_to: localhost
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          name: "{{ netbox_device_name }}"
+          primary_ip4: >-
+            {{ (discovered_ips_final | selectattr('interface', 'equalto', 'Loopback0') | list | first).address
+               if (discovered_ips_final | selectattr('interface', 'equalto', 'Loopback0') | list | length > 0)
+               else omit }}
+        state: present
+
+    # ---------- Push modules / line cards / SFPs (already collected earlier) ----------
+    - name: Record modules/line cards/SFPs on TEST device
+      delegate_to: localhost
+      netbox.netbox.netbox_inventory_item:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        validate_certs: false
+        data:
+          device: "{{ netbox_device_name }}"
+          name: "{{ item.name }}"
+          manufacturer:
+            slug: "{{ netbox_manufacturer_slug }}"
+          part_id: "{{ item.pid }}"
+          serial: "{{ item.sn }}"
+          description: "{{ item.descr }}"
+        state: present
+      loop: "{{ discovered_modules }}"
+      loop_control:
+        label: "{{ item.name }}"

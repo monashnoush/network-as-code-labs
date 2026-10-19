@@ -1,0 +1,14 @@
+---
+- name: Domonistrate YAML block scalar indiccators
+  hosts: localhost
+  gather_facts: false
+  vars:
+    literal_block: |
+        router bgp 65000
+        naighbor 192.168.1.2,as-65000
+  tasks:
+    
+    name: Printing lieter
+    ansible.builtin.debug:
+        msg: "{{ literal_block }}
+    

@@ -1,0 +1,32 @@
+---
+###################################################
+# Playbook for plugin training template,file,csvfile
+###################################################
+- name: Playbook for plugin training
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Printing lookup results
+      ansible.builtin.debug:
+        msg: 
+          - "This is a test message for plugin training"
+          - "{{ lookup('file', '/home/.ansible/inventory/hosts') }}"
+          - "{{ lookup('pipe', 'date +%T-%m-%d') }}"
+          - "{{ lookup('pipe', 'ls -lat') }}"
+
+    - name: Parse specific key from CSV file
+      ansible.builtin.debug:
+        msg: 
+          - " Router_id: {{ lookup('csvfile', inventory_hostname + ' file=/home/.ansible/IP_plan.csv delimiter=, col=1') }}"
+          - " ospf_proc: {{ lookup('csvfile', inventory_hostname + ' file=/home/.ansible/IP_plan.csv delimiter=, col=4') }}"
+          - "ISIS_proc: {{ lookup('csvfile', inventory_hostname + ' file=/home/.ansible/IP_plan.csv delimiter=, col=5') }}"
+          - "BGP_asn: {{ lookup('csvfile', inventory_hostname + ' file=/home/.ansible/IP_plan.csv delimiter=, col=6') }}"
+
+    - name: Parse specific key from YAML file
+      ansible.builtin.debug:
+        msg: 
+          - "{{ (lookup('file', '/home/.ansible/playbooks/IP_pan.yml', errors='ignore') | default('{}', true) | from_yaml).host[inventory_hostname].ip | default('IP_NOT_FOUND') }}"
+    - name: printing dattime
+      ansible.builtin.debug:
+        msg: "{{ now(utc=True, fmt= '%Y%m%d') }}"
+      delegate_to: localhost

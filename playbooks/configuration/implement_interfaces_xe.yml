@@ -1,0 +1,40 @@
+---
+- name: Implement interface
+  hosts: P02_xe,PE02_xe
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+  tasks:
+
+    - name: Configure hostname
+      cisco.ios.ios_hostname:
+        config:
+          hostname: "{{ host_name }}"
+        state: merged
+
+    - name: Create L1/2 interface configuration
+      cisco.ios.ios_interfaces:
+        config: "{{ l2_interfaces }}"
+        state: merged
+
+    - name: Apply L3 interface configuration
+      cisco.ios.ios_l3_interfaces:
+        config: "{{ l3_interfaces }}"
+        state: merged
+
+    - name: Configure Lag interfaces
+      cisco.ios.ios_lag_interfaces:
+        config: "{{ lag_interfaces }}"
+        state: merged
+      when: "lag_interfaces is defined"
+
+    - name: Verify interface configuration
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+      register: sh_intf_result
+      changed_when: false
+
+    - name: Print interface configuration
+      ansible.builtin.debug:
+        msg: "{{ sh_intf_result.stdout_lines[0] }}"

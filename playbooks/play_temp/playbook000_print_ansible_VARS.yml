@@ -1,0 +1,13 @@
+---
+ - name: Training Module0 print ansible_var
+   hosts: all
+   gather_facts: false
+   tasks:
+    - name: printing vars
+      ansible.builtin.debug:
+        msg:
+          - "Printing Ansible VARS"
+          - "hostname: {{ inventory_hostname }}"
+          - "IP address: {{ ansible_host }}"
+          - "OS: {{ansible_network_os}}"
+

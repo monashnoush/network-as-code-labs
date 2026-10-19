@@ -1,0 +1,30 @@
+---
+- name: Create testbed
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - name: Generate pyATS testbed file from active Ansible inventory
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/testbed.yml"
+        mode: '0644'
+        content: |
+          testbed:
+            name: Generated_Ansible_Testbed
+            credentials:
+              default:
+                username: "{{ ansible_user | default('admin') }}"
+                password: "{{ ansible_password | default('') }}"
+          devices:
+          {% for host in groups['all'] %}
+            {{ host }}:
+              os: "{{ hostvars[host]['ansible_network_os'] | default('iosxr') }}"
+              type: router
+              connections:
+                cli:
+                  protocol: ssh
+                  ip: "{{ hostvars[host]['ansible_host'] | default(host) }}"
+                  port: {{ hostvars[host]['ansible_port'] | default(22) }}
+          {% endfor %}
+      delegate_to: localhost
+      run_once: true

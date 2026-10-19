@@ -1,0 +1,7 @@
+---
+ansible_connection: network_cli
+bgp_asn: 65000
+isis_proc: CORE
+router_id: Loopback 0
+ospf_proc: 1
+RR_ip: 10.0.0.10

@@ -1,0 +1,25 @@
+---
+- name: EXc001 apply gather data
+  hosts: xrv1
+  gather_facts: false
+  tasks:
+    - name: Collect platform resources
+      cisco.iosxr.iosxr_facts:
+        gather_subset:
+          - all
+      register: gather_plat_facts
+
+    - name: Display platform information
+      ansible.builtin.debug:
+            msg:
+              - "The platform name: {{ gather_plat_facts.ansible_facts }}" 
+
+    - name: Collect Network resources
+      cisco.iosxr.iosxr_facts:
+        gather_network_resources:
+      register: gather_resources
+
+    - name: Display platform network  
+      ansible.builtin.debug:
+        msg:
+          - "{{gather_resources }}"

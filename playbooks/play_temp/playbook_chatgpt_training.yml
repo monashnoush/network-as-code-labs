@@ -1,0 +1,15 @@
+---
+- name: Ansible chatgpt_excercise
+  hosts: KM4
+  gather_facts: false
+  tasks:
+    - name: Gathering iosxr_facts
+      cisco.iosxr.iosxr_facts:
+      register: KM4_facts
+    - name: printing KM4_facts
+      ansible.builtin.debug:
+        msg: 
+          - "{{ hostvars }}"
+          - "{{ ansible_net_hostname }}"
+          - "{{ansible_net_version }}"
+          - " hostname is incorrect and must be changed"

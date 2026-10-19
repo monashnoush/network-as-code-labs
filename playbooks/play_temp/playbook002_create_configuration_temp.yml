@@ -1,0 +1,13 @@
+---
+#################################################################################
+# This script is used to Create Configuration template using jinja2
+###################################################################################
+- name: Create Configuration template using jinja2
+  hosts: KM4
+  gather_facts: false
+  tasks:
+      - name: Create Configuration template using jinja2
+        ansible.builtin.template:
+          src: "templates/isis_config.j2"
+          dest: "/home/.ansible/Configuration_template/{{ inventory_hostname }}_config_{{ lookup('pipe', 'date +%Y-%m-%d_%H:%M:%S') }}.txt"
+        delegate_to: localhost  

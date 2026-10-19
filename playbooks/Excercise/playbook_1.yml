@@ -1,0 +1,67 @@
+---
+##########################################
+# Collect intf data and push to csv file #
+###########################################
+- name: EX:1 Connect and read
+  hosts: all
+  gather_facts: no
+  vars:
+    target_interface: 
+     - BE100
+     - BE200
+
+  tasks:
+    - name: Run show commands
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show version
+          - show ip interface brief
+      register: show_output
+      changed_when: false
+      failed_when: "invalid input in show_output.stderr[0] | lower"
+    
+    - name: Display show command output
+      ansible.builtin.debug:
+        var: show_output.stdout_lines
+      changed_when: false
+
+    - name: Apply show interface
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show run interface {{ item }}
+      register: show_interface_output
+      changed_when: false
+      failed_when: "'invalid input' in show_interface_output.stderr[0] | lower"
+      loop: "{{ target_interface }}"
+
+    - name: Extract and display interface parameters
+      ansible.builtin.set_fact: >-
+          intf_facts: "{{ intf_facts | default([]) + [{ 
+          'intf_name': item.item ,
+          'intf_MTU': " {{ (item.stdout[0] | regex_search('(?m)^ mtu (\\d+)$', '\\1') | first) | default(NA, true) }}",
+          'intf_IPV4': "{{ (item.stdout[0] | regex_search('(?m)^ ipv4 address (\\s+)$', '\\1') | default(NA, true) }}",
+          'intf_IPV6': "{{ (item.stdout[0] | regex_search('(?m)^ ipv6 address (\\s+)$', '\\1') | default(NA, true) }}"
+          }]
+        }}"
+      loop: "{{ show_interface_output.results }}"
+      changed_when: false
+
+    - name: Display interface parameters
+      ansible.builtin.debug:
+        msg:
+          - "Interface MTU: {{ intf_MTU }}"   
+          - "Interface IPv4: {{ intf_IPV4 }}"   
+          - "Interface IPv6: {{ intf_IPV6 }}"
+    - name: copy to csv file
+      ansible.builtin.copy:
+        content: |
+        host,interface,MTU,IPv4,IPV6
+        {% for intf in intf_facts %}
+        {{ inventory_hostname }},{{ intf.intf_name }},{{ intf.intf_MTU }},{{ intf.intf_IPV4 }},{{ intf.intf_IPV6 }}
+        {% endfor %}
+        {% for intf in intf_facts %}
+        {{ inventory_hostname }},{{ intf.intf_name }},{{ intf.intf_MTU }},{{ intf.intf_IPV4 }},{{ intf.intf_IPV6 }}
+        {% endfor %}
+        dest: "/tmp/interface_parameters.csv"
+        delegate_to: localhost
+        run_once: true  

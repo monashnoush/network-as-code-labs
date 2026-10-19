@@ -1,0 +1,33 @@
+router isis {{ isis_proc | default('CORE') }}
+  net {{ isis_net }}
+  is-type level-2-only
+  nsr
+  distribute link-state level 2
+  nsf ietf
+  nsf lifetime 300
+  nsf interface-timer 15
+  nsf interface-expires 1
+  log adjacency changes
+  address-family ipv4 unicast
+    metric-style wide level 2
+    segment-routing mpls sr-prefer
+
+  !
+  interface Loopback0
+    passive
+    circuit-type level-2-only
+    address-family ipv4 unicast
+      prefix-sid absolute {{ sid_id }}
+    !
+  !
+{% for intf in isis_interfaces %}
+{% if intf.name != 'Loopback0' %}
+  interface {{ intf.name }}
+    circuit-type level-2-only
+    point-to-point
+    address-family ipv4 unicast
+
+    !
+  !
+{% endif %}
+{% endfor %}

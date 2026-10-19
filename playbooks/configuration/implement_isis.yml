@@ -1,0 +1,68 @@
+---
+- name: Implement isis protocol
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+
+  tasks:
+    - name: Apply isis configuration on ASR9k
+      cisco.iosxr.iosxr_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/isis_config_xr.j2
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Apply isis configuration on CSR
+      cisco.ios.ios_config:
+        src: /home/nashnoush/Network_automation/ansible_training/playbooks/templates/isis_config_xe.j2
+      when: ansible_network_os == "cisco.ios.ios"
+
+    - name: Verify isis configuration and neighboring on ASR9k
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show isis neighbors
+      register: sh_isis_result_xr
+      changed_when: false
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Verify isis configuration and neighboring on CSR
+      cisco.ios.ios_command:
+        commands:
+          - show isis neighbors
+      register: sh_isis_result_xe
+      changed_when: false
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Count neighbors directly from raw output via regex - counts
+    # lines showing an "Up" adjacency, same table format on both
+    # IOS-XR and IOS-XE for "show isis neighbors".
+    # -----------------------------------------------------------
+    - name: Count isis neighbors (XR)
+      ansible.builtin.set_fact:
+        isis_neighbor_count: "{{ (sh_isis_result_xr.stdout_lines[0] | select('search', '\\s+Up\\s+') | list) | length }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Count isis neighbors (IOS)
+      ansible.builtin.set_fact:
+        isis_neighbor_count: "{{ (sh_isis_result_xe.stdout_lines[0] | select('search', '\\s+UP\\s+') | list) | length }}"
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Print full neighbor table (unchanged from original intent)
+    # -----------------------------------------------------------
+    - name: Printing isis verification ASR9k
+      ansible.builtin.debug:
+        msg: "{{ sh_isis_result_xr.stdout_lines[0] }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Printing isis verification CSR
+      ansible.builtin.debug:
+        msg: "{{ sh_isis_result_xe.stdout_lines[0] }}"
+      when: ansible_network_os == "cisco.ios.ios"
+
+    # -----------------------------------------------------------
+    # Print count summary
+    # -----------------------------------------------------------
+    - name: Printing isis neighbor count summary
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} has {{ isis_neighbor_count }} ISIS neighbor(s) in Up state"

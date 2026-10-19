@@ -1,0 +1,16 @@
+{% set proc = isis_proc | default('Core') %}
+router isis {{ proc }}
+{% if isis_net is defined %}
+ net {{ isis_net }}
+{% endif %}
+ metric-style wide
+!
+{% for intf in isis_interfaces %}
+interface {{ intf.name }}
+ ip router isis {{ proc }}
+{% if 'loopback' not in intf.name | lower %}
+ isis circuit-type {{ intf.circuit_type }}
+ isis network point-to-point
+{% endif %}
+!
+{% endfor %}

@@ -1,0 +1,111 @@
+---
+# Gather live interface data from IOS-XR devices and push it into NetBox.
+#
+# Requirements:
+#   ansible-galaxy collection install netbox.netbox
+#   pip install pynetbox --break-system-packages
+#
+# Vault file inventory/.netbox_secret.yml must contain:
+#   netbox_url: "https://netbox.yourcompany.com"
+#   netbox_token: "your-api-token"
+#
+# Usage:
+#   ansible-playbook playbooks/sync_interface_to_netbox.yaml --limit PE01 --check
+#   ansible-playbook playbooks/sync_interface_to_netbox.yaml --limit PE01
+
+- name: Gather interface facts and push to NetBox
+  hosts: KM4
+  gather_facts: false
+  vars_files:
+    - inventory/.secret.yml
+    - inventory/.netbox_secret.yml
+
+  vars:
+    target_interface: Bundle-Ether300
+    target_interface_cmd: be300  # short form used in "show run int be300"
+    netbox_site: "Tajoura"
+    netbox_device_role: "PE Router"
+    netbox_device_type: "ASR9910"
+
+  tasks:
+    # ---------------------------------------------------------------
+    # 1. Gather from the device
+    # ---------------------------------------------------------------
+    - name: Gather interface config
+      cisco.iosxr.iosxr_command:
+        commands:
+          - "show run int {{ target_interface_cmd }}"
+      register: show_output
+      changed_when: false
+      failed_when: "'invalid input' in show_output.stdout[0] | lower"
+
+    - name: Parse interface details
+      ansible.builtin.set_fact:
+        iface_desc: "{{ (show_output.stdout[0] | regex_search('(?m)^ description (.+)$', '\\1') | first) | default('N/A', true) }}"
+        iface_mtu: "{{ (show_output.stdout[0] | regex_search('(?m)^ mtu (\\d+)$', '\\1') | first) | default(1514, true) }}"
+        iface_ipv4: "{{ (show_output.stdout[0] | regex_search('(?m)^ ipv4 address ([\\d\\.]+) ([\\d\\.]+)$', '\\1', '\\2') ) | default([], true) }}"
+        iface_enabled: "{{ 'shutdown' not in show_output.stdout[0] }}"
+
+    - name: Display parsed data before pushing
+      ansible.builtin.debug:
+        msg:
+          - "Device      : {{ inventory_hostname }}"
+          - "Interface   : {{ target_interface }}"
+          - "Description : {{ iface_desc }}"
+          - "MTU         : {{ iface_mtu }}"
+          - "IPv4        : {{ iface_ipv4 }}"
+          - "Enabled     : {{ iface_enabled }}"
+
+    # ---------------------------------------------------------------
+    # 2. Ensure the device itself exists in NetBox
+    # ---------------------------------------------------------------
+    - name: Ensure device exists in NetBox
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ inventory_hostname }}"
+          device_role: "{{ netbox_device_role }}"
+          device_type: "{{ netbox_device_type }}"
+          site: "{{ netbox_site }}"
+          status: "active"
+        state: present
+      delegate_to: localhost
+
+    # ---------------------------------------------------------------
+    # 3. Push interface data
+    # ---------------------------------------------------------------
+    - name: Push interface data to NetBox
+      netbox.netbox.netbox_device_interface:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          device: "{{ inventory_hostname }}"
+          name: "{{ target_interface }}"
+          description: "{{ iface_desc }}"
+          mtu: "{{ iface_mtu }}"
+          enabled: "{{ iface_enabled }}"
+        state: present
+      delegate_to: localhost
+      register: netbox_iface_result
+
+    # ---------------------------------------------------------------
+    # 4. Push IPv4 address, only if one was actually parsed
+    # ---------------------------------------------------------------
+    - name: Push IPv4 address to NetBox
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          address: "{{ iface_ipv4[0] }}/{{ (iface_ipv4[1] | ansible.utils.ipaddr('netmask') ) | default('32') }}"
+          assigned_object:
+            device: "{{ inventory_hostname }}"
+            name: "{{ target_interface }}"
+          status: "active"
+        state: present
+      delegate_to: localhost
+      when: iface_ipv4 | length == 2
+
+    - name: Report result
+      ansible.builtin.debug:
+        msg: "NetBox sync complete for {{ inventory_hostname }} / {{ target_interface }} (changed: {{ netbox_iface_result.changed }})"

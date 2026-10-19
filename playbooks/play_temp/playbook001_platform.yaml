@@ -1,0 +1,21 @@
+---
+#########################################################################################
+# This script is used to collect platform information from the device.
+#########################################################################################
+-   name: Collect platform information
+    hosts: all
+    gather_facts: false
+    strategy: free
+    tasks:
+        - name: Gather platform facts
+          cisco.iosxr.iosxr_facts:
+            gather_subset:
+              - interfaces
+          register: platform_facts
+        - name: Display platform information
+          ansible.builtin.debug:
+            msg:
+              - "The platform name: {{ ansible_facts.net_hostname }}" 
+              - "The platform model: {{ ansible_facts.net_model }}"
+              - "The platform version: {{ ansible_facts.net_version }}"
+              - "The platform serial number: {{ ansible_facts.net_serialnum }}"

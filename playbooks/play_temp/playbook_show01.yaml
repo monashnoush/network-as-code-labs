@@ -1,0 +1,29 @@
+---
+- name: run show commands
+  hosts: KM4
+  gather_facts: false
+
+  tasks:
+    - name: Gather facts from the device
+      cisco.iosxr.iosxr_command:
+        commands:
+          - show run int be300
+      register: show_output
+
+    - name: Parse interface details
+      ansible.builtin.set_fact:
+        be300_desc: "{{ show_output.stdout[0] | regex_search('description\\s+(.*)', '\\1') | first | default('N/A') }}"
+        be300_mtu: "{{ show_output.stdout[0] | regex_search('mtu\\s+(\\d+)', '\\1') | first | default('N/A') }}"
+        be300_ipv4: "{{ show_output.stdout[0] | regex_search('ipv4 address\\s+([\\d\\.]+ [\\d\\.]+)', '\\1') | first | default('N/A') }}"
+        be300_ipv6: "{{ show_output.stdout[0] | regex_search('ipv6 address\\s+([^\\s]+)', '\\1') | first | default('N/A') }}"
+        # be300_qos: "{{ show_output.stdout[0] | regex_search('service-policy output\\s+(\\S+)', '\\1') | first | default('N/A') }}"
+
+    - name: Display parsed fields
+      ansible.builtin.debug:
+        msg:
+          - "Interface  : Bundle-Ether300"
+          - "Description: {{ be300_desc }}"
+          - "MTU        : {{ be300_mtu }}"
+          - "IPv4       : {{ be300_ipv4 }}"
+          - "IPv6       : {{ be300_ipv6 }}"
+          # - "QoS Policy : {{ be300_qos }}"

@@ -1,0 +1,35 @@
+[iosxr_group]
+P01_9k ansible_host=192.168.0.1
+PE01_9k ansible_host=192.168.0.2
+
+[iosxr_group:vars]
+ansible_connection=ansible.netcommon.network_cli
+ansible_network_os=cisco.iosxr.iosxr
+
+
+[iosxe_group]
+P02_xe ansible_host=192.168.0.11
+PE02_xe  ansible_host=192.168.0.12
+
+[iosxe_group:vars]
+ansible_connection=ansible.netcommon.network_cli
+ansible_network_os=cisco.ios.ios
+
+[RR_group]
+RR_9k ansible_host=192.168.0.10
+
+[RR_group:vars]
+ansible_connection=ansible.netcommon.network_cli
+ansible_network_os=cisco.iosxr.iosxr
+
+[routers:children]
+iosxr_group
+iosxe_group
+RR_group
+
+[routers:vars]
+ansible_connection=ansible.netcommon.network_cli
+ansible_user=nashnoush
+ansible_password=nashnoush
+
+

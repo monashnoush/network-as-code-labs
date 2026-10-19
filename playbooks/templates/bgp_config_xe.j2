@@ -1,0 +1,9 @@
+{% if bgp_asn is defined %}
+router bgp {{ bgp_asn }}
+ bgp router-id {{ router_id }}
+ neighbor {{ RR_ip }} remote-as {{ bgp_asn }}
+ neighbor {{ RR_ip }} update-source Loopback0
+ address-family ipv4
+  neighbor {{ RR_ip }} activate
+ exit-address-family
+{% endif %}

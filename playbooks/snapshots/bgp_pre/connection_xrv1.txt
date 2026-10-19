@@ -1,0 +1,116 @@
+
+2026-09-05 23:19:43,906: %UNICON-INFO: +++ xrv1 logfile snapshots/bgp_pre/connection_xrv1.txt +++
+
+2026-09-05 23:19:43,906: %UNICON-INFO: +++ Unicon plugin iosxr (unicon.plugins.iosxr) +++
+
+
+
+IMPORTANT:  READ CAREFULLY
+Welcome to the Demo Version of Cisco IOS XRv (the "Software").
+The Software is subject to and governed by the terms and conditions
+of the End User License Agreement and the Supplemental End User
+License Agreement accompanying the product, made available at the
+time of your order, or posted on the Cisco website at
+www.cisco.com/go/terms (collectively, the "Agreement").
+As set forth more fully in the Agreement, use of the Software is
+strictly limited to internal use in a non-production environment
+solely for demonstration and evaluation purposes.  Downloading,
+installing, or using the Software constitutes acceptance of the
+Agreement, and you are binding yourself and the business entity
+that you represent to the Agreement.  If you do not agree to all
+of the terms of the Agreement, then Cisco is unwilling to license
+the Software to you and (a) you may not download, install or use the
+Software, and (b) you may return the Software as more fully set forth
+in the Agreement.
+
+
+Please login with any configured user/password, or cisco/cisco
+
+
+
+
+2026-09-05 23:19:54,759: %UNICON-INFO: +++ connection to spawn: ssh -l nashnoush 192.168.0.1 -p 22, id: 131215522098896 +++
+
+2026-09-05 23:19:54,759: %UNICON-ERROR: Use log_file() service for setting log file
+
+2026-09-05 23:19:54,759: %UNICON-INFO: connection to xrv1
+(nashnoush@192.168.0.1) Password: 
+
+
+RP/0/0/CPU0:xrv1#
+
+2026-09-05 23:19:55,047: %UNICON-INFO: +++ xrv1 with via 'cli': enable +++
+
+2026-09-05 23:19:55,048: %UNICON-INFO: Storing credentials from default as current_credentials
+
+2026-09-05 23:19:55,050: %UNICON-INFO: +++ initializing handle +++
+
+2026-09-05 23:19:55,050: %UNICON-INFO: +++ xrv1 with via 'cli': enable +++
+
+2026-09-05 23:19:55,193: %UNICON-INFO: +++ xrv1 with via 'cli': executing command 'terminal length 0' +++
+terminal length 0
+Sat Sep  5 21:16:43.591 UTC
+RP/0/0/CPU0:xrv1#
+
+2026-09-05 23:19:55,658: %UNICON-INFO: +++ xrv1 with via 'cli': executing command 'terminal width 0' +++
+terminal width 0
+Sat Sep  5 21:16:43.971 UTC
+RP/0/0/CPU0:xrv1#
+
+2026-09-06 12:20:31,192: %UNICON-INFO: +++ xrv1 logfile snapshots/bgp_pre/connection_xrv1.txt +++
+
+2026-09-06 12:20:31,194: %UNICON-INFO: +++ Unicon plugin iosxr (unicon.plugins.iosxr) +++
+
+
+
+
+2026-09-06 12:20:31,805: %UNICON-INFO: +++ connection to spawn: ssh -l nashnoush 192.168.0.1 -p 22, id: 140440426489440 +++
+
+2026-09-06 12:20:31,805: %UNICON-ERROR: Use log_file() service for setting log file
+
+2026-09-06 12:20:31,805: %UNICON-INFO: connection to xrv1
+
+IMPORTANT:  READ CAREFULLY
+Welcome to the Demo Version of Cisco IOS XRv (the "Software").
+The Software is subject to and governed by the terms and conditions
+of the End User License Agreement and the Supplemental End User
+License Agreement accompanying the product, made available at the
+time of your order, or posted on the Cisco website at
+www.cisco.com/go/terms (collectively, the "Agreement").
+As set forth more fully in the Agreement, use of the Software is
+strictly limited to internal use in a non-production environment
+solely for demonstration and evaluation purposes.  Downloading,
+installing, or using the Software constitutes acceptance of the
+Agreement, and you are binding yourself and the business entity
+that you represent to the Agreement.  If you do not agree to all
+of the terms of the Agreement, then Cisco is unwilling to license
+the Software to you and (a) you may not download, install or use the
+Software, and (b) you may return the Software as more fully set forth
+in the Agreement.
+
+
+Please login with any configured user/password, or cisco/cisco
+
+
+(nashnoush@192.168.0.1) Password: 
+
+
+RP/0/0/CPU0:xrv1#
+
+2026-09-06 12:20:32,141: %UNICON-INFO: +++ xrv1 with via 'cli': enable +++
+
+2026-09-06 12:20:32,141: %UNICON-INFO: Storing credentials from default as current_credentials
+
+2026-09-06 12:20:32,143: %UNICON-INFO: +++ initializing handle +++
+
+2026-09-06 12:20:32,143: %UNICON-INFO: +++ xrv1 with via 'cli': enable +++
+
+2026-09-06 12:20:32,280: %UNICON-INFO: +++ xrv1 with via 'cli': executing command 'terminal length 0' +++
+terminal length 0
+Sun Sep  6 10:17:15.473 UTC
+RP/0/0/CPU0:xrv1#
+
+2026-09-06 12:20:32,709: %UNICON-INFO: +++ xrv1 with via 'cli': executing command 'terminal width 0' +++
+terminal width 0
+Sun Sep  6 10:17:15.823 UTC
+RP/0/0/CPU0:xrv1#

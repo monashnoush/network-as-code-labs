@@ -1,0 +1,38 @@
+########################################################################################
+### Inspect and deploy configuration using Jinja2 template with template lookup plugin
+########################################################################################
+- name: Inspect and Deploy Cisco IOS-XR Configuration
+  hosts: KM4
+  gather_facts: false
+
+  vars:
+    Loopback_name: Loopback12
+    Loopback_ip: "10.255.0.12"
+    Loopback_des: "Loopback12 for testing"
+
+  tasks:
+    # Step 1: Render the template in memory
+    - name: Render Jinja2 template into variable
+      ansible.builtin.set_fact:
+        rendered_cli: "{{ lookup('template', playbook_dir + '/templates/hostname.j2') }}"
+
+    # Step 2: Inspect rendered configuration on stdout
+    - name: DEBUG - Preview rendered CLI commands before applying
+      ansible.builtin.debug:
+        msg: "{{ rendered_cli.splitlines() }}"
+
+    - name: Pause for operator review
+      ansible.builtin.pause:
+        prompt: "Review the rendered config above. Press ENTER to push to {{ inventory_hostname }} or CTRL+C to abort."
+<<<<<<< Updated upstream
+        
+    - name: Push verified configuration to router
+      cisco.iosxr.iosxr_config:
+        lines: "{{ rendered_cli.splitlines() }}"
+=======
+    
+    - name: Deploy rendered configuration
+      cisco.iosxr.iosxr_config:
+        lines: "{{ rendered_cli.splitlines() }}"
+      check_mode: true  
+>>>>>>> Stashed changes
