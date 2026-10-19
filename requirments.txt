@@ -1,0 +1,6 @@
+# install requirments
+netmiko
+paramiko
+requests
+ansible
+
