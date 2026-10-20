@@ -1,0 +1,40 @@
+---
+# backup: true saves "show running-config" on the control node and
+# changes nothing on the device. One folder per host, one timestamped
+- name: Backup running configuration
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+    backup_dir: /home/nashnoush/Network_automation/ansible_training/backups
+    backup_stamp: "{{ now(fmt='%Y-%m-%d_%H%M%S') }}"
+
+  tasks:
+    
+    - name: Backup running config on ASR9k
+      cisco.iosxr.iosxr_config:
+        backup: true
+        backup_options:
+          dir_path: "{{ backup_dir }}/{{ inventory_hostname }}"
+          filename: "{{ inventory_hostname }}_{{ backup_stamp }}.cfg"
+      register: backup_result_xr
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Backup running config on CSR
+      cisco.ios.ios_config:
+        backup: true
+        backup_options:
+          dir_path: "{{ backup_dir }}/{{ inventory_hostname }}"
+          filename: "{{ inventory_hostname }}_{{ backup_stamp }}.cfg"
+      register: backup_result_xe
+      when: ansible_network_os == "cisco.ios.ios"
+
+    - name: Print backup location ASR9k
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} backup saved to {{ backup_result_xr.backup_path }}"
+      when: ansible_network_os == "cisco.iosxr.iosxr"
+
+    - name: Print backup location CSR
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} backup saved to {{ backup_result_xe.backup_path }}"
+      when: ansible_network_os == "cisco.ios.ios"
