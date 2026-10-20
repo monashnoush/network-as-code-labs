@@ -1,0 +1,1 @@
+Hands-on Network as Code labs using Ansible, Jinja2, and structured YAML inventory. Automate interface configuration, IS-IS, iBGP, and SR-MPLS across multi-router topologies, with a focus on repeatable deployment, validation, and scalable network automation.
