@@ -1,0 +1,51 @@
+---
+# This script for hostname configuration usin API
+  - name: Configurae Network devices using API
+    hosts: P02_xe
+    gather_facts: false
+    tasks:
+      # Pre-check validation
+      - name: Pre hostname validation
+        ansible.builtin.uri:
+          url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/hostname"
+          method: GET
+          headers:
+            Accept: application/yang-data+json
+            Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+          validate_certs: false
+        register: host_pre
+
+      - name: Print host_pre
+        ansible.builtin.debug:
+          msg: "{{ host_pre.json }}"
+
+        #Configure hostname using API
+      - name: Configure hostname
+        ansible.builtin.uri:
+          url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/hostname"
+          method: PATCH
+          body_format: json
+          status_code: [200,204]
+          body:
+              hostname: "P02_xe"
+          headers:
+            Accept: application/yang-data+json
+            Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+            Content-Type: application/yang-data+json
+          validate_certs: false
+      
+        # Validation after configuration
+      - name: Post  hostname validation
+        ansible.builtin.uri:
+          url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/hostname"
+          method: GET
+          headers:
+            Accept: application/yang-data+json
+            Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+          validate_certs: false
+        register: host_after
+      
+      - name: Print host_after
+        ansible.builtin.debug:
+          msg: "{{ host_after.json }}"
+        

@@ -1,0 +1,45 @@
+---
+- name: Configure Interface via RESTCONF API
+  hosts: P02_xe
+  gather_facts: false
+  tasks:
+    - name: Configure GigabitEthernet1 description and IP address
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=5"
+        method: PATCH
+        body_format: json
+        body:
+          Cisco-IOS-XE-native-edm:GigabitEthernet:
+            name: "5"
+            description: "Configured via RESTCONF Ansible"
+            ip:
+              address:
+                primary:
+                  address: "192.168.100.1"
+                  mask: "255.255.255.0"
+        headers:
+          Accept: application/yang-data+json
+          Content-Type: application/yang-data+json
+          Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+        validate_certs: false
+        status_code: [200, 204]
+      register: intf_conf
+
+    - name: Print configuration result
+      ansible.builtin.debug:
+        msg: "{{ intf_conf }}"
+
+    - name: Verify interface configuration via GET
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=1"
+        method: GET
+        headers:
+          Accept: application/yang-data+json
+          Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+        validate_certs: false
+        status_code: [200]
+      register: intf_verify
+
+    - name: Print verified interface state
+      ansible.builtin.debug:
+        msg: "{{ intf_verify['json'] }}"

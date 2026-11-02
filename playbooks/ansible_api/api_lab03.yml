@@ -1,0 +1,51 @@
+---
+# This script for hostname configuration usin API
+  - name: Configurae Network devices using API
+    hosts: P02_xe
+    gather_facts: false
+    tasks:
+      # Pre-check validation
+      - name: Pre hostname validation
+        ansible.builtin.uri:
+          url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/interface=GigabitEthernet5"
+          method: GET
+          headers:
+            Accept: application/yang-data+json
+            Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+          validate_certs: false
+        register: intf_pre_validation
+
+      - name: Print host_pre
+        ansible.builtin.debug:
+          msg: "{{ intf_pre_validation.json }}"
+
+        #Configure hostname using API
+      - name: Configure Interface Gi5
+        ansible.builtin.uri:
+          url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/interface=GigabitEthernet=5"
+          method: PATCH
+          body_format: json
+          status_code: [200,204]
+          body:
+              
+          headers:
+            Accept: application/yang-data+json
+            Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+            Content-Type: application/yang-data+json
+          validate_certs: false
+      
+        # Validation after configuration
+      - name: Post  hostname validation
+        ansible.builtin.uri:
+          url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/hostname"
+          method: GET
+          headers:
+            Accept: application/yang-data+json
+            Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA=="
+          validate_certs: false
+        register: host_after
+      
+      - name: Print host_after
+        ansible.builtin.debug:
+          msg: "{{ host_after.json }}"
+        

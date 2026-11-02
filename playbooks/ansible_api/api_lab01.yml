@@ -1,0 +1,36 @@
+---
+# This lab will simulate Ansible using an API to connect to a router
+- name: Gather IOS-XE info using restconf API
+  hosts: P02_xe
+  gather_facts: false
+  tasks:
+    - name: Collect router info using GET verb
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/hostname"
+        method: GET
+        user: nashnoush
+        password: nashnoush
+        force_basic_auth: true
+        headers:
+          Accept: application/yang-data+json
+        return_content: true
+        validate_certs: false
+      register: get_conf
+
+    - name: Gather interface configuration using api
+      ansible.builtin.uri:
+        url: "https://{{ ansible_host }}/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=3"
+        method: GET
+        headers:
+          Accept: application/yang-data+json
+          Authorization: "Basic bmFzaG5vdXNoOm5hc2hub3VzaA==" 
+        return_content: true
+        validate_certs: false
+
+      register: get_intf
+
+    - name: Print data
+      ansible.builtin.debug:
+        msg:
+          - "{{ get_conf['json'] }}"
+          - "{{ get_intf.json }}" 
