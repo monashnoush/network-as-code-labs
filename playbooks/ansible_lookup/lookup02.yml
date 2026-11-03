@@ -1,0 +1,28 @@
+---
+# This script simulate how to exctract vars from file and 
+# reused for configuration
+- name: lab01 using lookup_file
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Gather all vars using lookup file
+      ansible.builtin.debug:
+        msg:
+          - "{{ lookup('file', '../../inventory/group_vars/all.yml') }}"
+      run_once: true
+      delegate_to: localhost
+
+
+    - name: Parse the text into a dictionary and read one value
+      delegate_to: localhost
+      run_once: true
+      ansible.builtin.set_fact:
+          bgp_asn: "{{ (lookup('file', inventory_dir + '/group_vars/all.yml') | from_yaml).bgp_asn }}"
+      run_once: true
+      delegate_to: localhost
+
+    - name: Configure bgp asn using var parsed using lookup
+      cisco.ios.ios_config:
+        lines:
+          - "router bgp {{ bgp_asn }}"

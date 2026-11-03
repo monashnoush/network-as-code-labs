@@ -1,0 +1,34 @@
+---
+# Lab L1 - lookup plugin basics
+# Lookups always run on the control node, so this play runs against localhost.
+- name: Lookup plugin basics
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    demo_file: /tmp/lookup_hello.txt
+
+  tasks:
+    - name: Create a small file to read
+      ansible.builtin.copy:
+        content: "Hello from the control node\n"
+        dest: "{{ demo_file }}"
+        mode: "0644"
+
+    - name: file lookup - read the file contents
+      ansible.builtin.debug:
+        msg: "{{ lookup('ansible.builtin.file', demo_file) }}"
+
+    - name: env lookup - read an environment variable
+      ansible.builtin.debug:
+        msg: "HOME is {{ lookup('ansible.builtin.env', 'HOME') }}"
+
+    - name: pipe lookup - run a command on the control node
+      ansible.builtin.debug:
+        msg: "Today is {{ lookup('ansible.builtin.pipe', 'date +%F') }}"
+
+    - name: lookup returns a string, query returns a list
+      ansible.builtin.debug:
+        msg:
+          lookup_result: "{{ lookup('ansible.builtin.list', 'a', 'b', 'c') }}"
+          query_result: "{{ query('ansible.builtin.list', 'a', 'b', 'c') }}"

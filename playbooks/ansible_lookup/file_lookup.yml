@@ -1,0 +1,13 @@
+---
+# This lab for lookup file using lookup plugin 
+# and used for configuration
+  - name: lob01 using lookup_file 
+    hosts: all
+    gather_facts: false
+    tasks:
+      - name: Gather var using lookup file
+        ansible.builtin.debug:
+          msg:
+            - "{{ lookup('file', '../../inventory/group_vars/all.yml') }}"
+        run_one: true
+        delegate: localhost

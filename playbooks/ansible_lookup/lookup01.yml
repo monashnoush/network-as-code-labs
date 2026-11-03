@@ -1,0 +1,24 @@
+---
+# This script simulate how to exctract vars from file using 
+# lookup and q
+- name: lab01 using lookup_file
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Gather var using lookup file
+      ansible.builtin.debug:
+        msg:
+          - "{{ lookup('file', '../../inventory/group_vars/all.yml') }}"
+          - "{{ q('file', '../../inventory/group_vars/all.yml') | regex_replace('\\n','') }}"
+      run_once: true
+      delegate_to: localhost
+
+    - name: Parse the text into a dictionary and read one value
+      ansible.builtin.debug:
+        msg: 
+          - "bgp_asn: {{ (lookup('ansible.builtin.file', inventory_dir + '/group_vars/all.yml') | from_yaml).bgp_asn }}"
+          - "RR_ip: {{ (lookup('file' , inventory_dir + '/group_vars/all.yml') | from_yaml).RR_ip }}"
+      run_once: true
+      delegate_to: localhost
+
