@@ -1,0 +1,28 @@
+---
+# This script uses filter_plugin: default,omit,ternary
+  - name: module04_exctract vars from yaml & json files
+    hosts: localhost
+    gather_facts: no
+    vars:
+      interface_list:
+        interface : 'interface Gi1'
+        description: 'TO_CE' 
+        acceess_list: ''
+        vrf_name: 'MGMT'
+
+    tasks:
+      - name: from_yaml
+        ansible.builtin.debug: 
+          msg:
+            - "vrf: {{ (interface_list | from_yaml).vrf_name }}"
+      
+      - name: from_json
+        ansible.builtin.debug: 
+          msg:
+            - "vrf: {{ (lookup('file','data.json') | from_json ).interface_list['vrf_name'] }}"
+
+
+
+
+
+

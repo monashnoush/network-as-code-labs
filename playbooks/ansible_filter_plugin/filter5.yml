@@ -1,0 +1,28 @@
+---
+  - name: module05_generate ip route configuration using zip
+    hosts: localhost
+    gather_facts: false
+    vars:
+      subnets:
+        - 10.0.0.0
+        - 192.168.0.0
+
+      GW_list:
+        - 10.0.0.255
+        - 192.168.0.255
+
+    tasks:
+
+      - name: zip 2 lists
+        ansible.builtin.set_fact:
+          loop_list: "{{ subnets | zip(GW_list) }}"
+      
+      - name: print loop_list
+        ansible.builtin.debug:
+          msg: "{{ loop_list }}"
+
+      - name: Generating static route configuration
+        ansible.builtin.debug:
+          msg:
+            - "ip route {{ item[0] }} 255.255.255.0 {{item.1}} "
+        loop: "{{ loop_list}}"

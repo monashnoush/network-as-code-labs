@@ -1,0 +1,30 @@
+---
+# This script uses filter_plugin: default,omit,ternary
+  - name: module03_convert files to json or yaml files
+    hosts: localhost
+    gather_facts: no
+    vars:
+      interface_list:
+        interface : 'interface Gi1'
+        description: 'TO_CE' 
+        acceess_list: ''
+        vrf_name: 'MGMT'
+
+    tasks:
+      - name: Convert vars to json,yaml
+        ansible.builtin.debug: 
+          msg:
+            - "\n{{ interface_list | to_nice_json }}"
+
+
+      - name: gather interface description with default
+        ansible.builtin.debug: 
+          msg:
+            - "{{ interface_list | to_yaml }}"
+
+
+
+
+
+
+

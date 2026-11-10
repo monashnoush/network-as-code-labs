@@ -1,0 +1,20 @@
+---
+# This script uses filter_plugin: default,omit,ternary
+  - name: module04_exctract vars from yaml & json files
+    hosts: localhost
+    gather_facts: no
+    vars:
+      interface_list:
+        interface : 'interface Gi1'
+        description: 'TO_CE' 
+        acceess_list: ''
+        vrf_name: 'MGMT'
+
+    tasks:
+      - name: from_yaml
+        ansible.builtin.debug: 
+          msg: "{{ (lookup('file', 'P01_9k.yml') | from_yaml).l2_interfaces | map(attribute='name') }}"
+
+
+
+

@@ -1,0 +1,30 @@
+---
+# This script uses filter_plugin: default,omit,ternary
+  - name: module01_using default,omit,ternary
+    hosts: localhost
+    gather_facts: no
+    vars:
+        interface : 'interface Gi1'
+        description: 'TO_CE' 
+        acceess_list: ''
+        vrf_name: 'MGMT'
+
+    tasks:
+      - name: apply ansible filter: default,omit, and ternary
+        ansible.builtin.debug: 
+          msg:
+            - "{{ interface }}"
+            - "description {{ description | default('no description') }}"
+            - "BW {{ bw | default ('1000Kb')}} "
+            - "mtu {{ mtu  | default(omit) }} "
+            - "access-group {{ acceess_list | default('filter_in', true ) }} in"
+            - "vrf forwarding {{ (vrf_name == 'MGMT') | ternary('managment','non-managment')}}"
+
+
+
+
+
+
+
+
+

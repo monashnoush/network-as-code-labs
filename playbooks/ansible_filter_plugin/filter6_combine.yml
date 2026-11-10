@@ -1,0 +1,20 @@
+---
+  - name: module06_overide interface configuration using combine
+    hosts: localhost
+    gather_facts: false
+    vars:
+      interface_settings:
+        speed: '10G'
+        duplex: 'Auto'
+        mtu: '1500'
+        access_list: 'default_acl_in'
+
+      interfce_overwrite:
+        speed: '100G'
+        mtu: '9500'
+
+    tasks:
+
+      - name: print loop_list
+        ansible.builtin.debug:
+          msg: "{{ interface_settings | combine(interfce_overwrite) }}"

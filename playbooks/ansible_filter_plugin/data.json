@@ -1,0 +1,7 @@
+{   "interface_list": {
+        "interface":"Gigaethernet1",
+        "mtu":1500,
+        "duplex": "auto",
+        "vrf_name":"MGMT"
+    }
+}

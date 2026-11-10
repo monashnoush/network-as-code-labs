@@ -1,0 +1,14 @@
+---
+# This script uses filter_plugin: json_query
+# you maust be sure install python module jmespath
+  - name: module08_exctract up interfaces using jsomn_query
+    hosts: localhost
+    gather_facts: no
+    tasks:
+      - name: from_yaml
+        ansible.builtin.debug:
+          msg: "{{ (lookup('file', 'P01_9k.yml') | from_yaml).l2_interfaces | map(attribute='name') }}"
+
+
+
+

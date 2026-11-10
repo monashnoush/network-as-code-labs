@@ -1,0 +1,40 @@
+---
+# This script uses filter_plugin: default,omit,ternary
+  - name: module04_exctract interfaces, and UP interfaces using map & json_query
+    hosts: PE02_xe
+    gather_facts: no
+    tasks:
+      - name: Collect data from CSR1000v
+        cisco.ios.ios_l3_interfaces:
+          state: 'gathered' 
+        register: intef_l3_data  
+
+      - name: Filter intef_data using map
+        ansible.builtin.debug: 
+            msg: "{{ intef_l3_data.gathered | map(attribute= 'name') }}"
+
+
+      - name: Collect interces status from CSR1000v
+        cisco.ios.ios_interfaces:
+          state: 'gathered' 
+        register: intef_data  
+
+
+      - name: Filter intef_data using json_query to get only up interfaces
+        ansible.builtin.debug: 
+            msg: "{{ intef_data.gathered | json_query('[?enabled == `true`].name') }}"
+
+      - name: Collect BGP status from CSR1000v
+        cisco.ios.ios_command:
+          commands:
+            - 'show ip bgp summary'
+        register: bgp_data
+
+      - name: Count BGP neighbors from raw output using regex
+        ansible.builtin.debug:
+                msg: >-
+                  {{
+                    bgp_data.stdout[0]
+                    | regex_findall('(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
+                    | length
+                  }}

@@ -1,0 +1,27 @@
+---
+  - name: module02_using filter item2dic,dic2item
+    hosts: localhost
+    gather_facts: false
+    vars:
+      ospf_vars:
+        ospf_id: 1
+        ospf_area: 0
+        network: 192.168.0.0
+        wildcard: 0.0.0.255
+      interface_list:
+        - interface: Gigaethernet1
+          ip: 192.168.0.1
+        - interface: Gigaethernet2
+          ip: 10.0.0.2
+
+    tasks:
+
+      - name: Convert dictionary to list dictionary
+        ansible.builtin.debug:
+          msg:
+            - "{{ ospf_vars | dict2items }}"
+
+      - name: Convert list to dictionary
+        ansible.builtin.debug:
+          msg:
+            - "{{ interface_list | items2dict(key_name='interface', value_name='ip') }}"
