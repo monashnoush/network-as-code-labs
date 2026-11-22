@@ -1,0 +1,6 @@
+---
+- name: Stage 20 — ospf validation
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: ospf

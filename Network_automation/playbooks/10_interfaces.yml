@@ -1,0 +1,6 @@
+---
+- name: Stage 10 — interface validation
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: interfaces

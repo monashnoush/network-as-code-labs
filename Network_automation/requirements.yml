@@ -1,0 +1,15 @@
+---
+# Install into the project:
+#   ansible-galaxy collection install -r requirements.yml -p collections
+# Versions are the ones currently on the control node.
+collections:
+  - name: ansible.netcommon
+    version: 8.7.1
+  - name: ansible.utils
+    version: 6.1.1
+  - name: cisco.ios
+    version: 11.6.0
+  - name: cisco.iosxr
+    version: 12.4.2
+  - name: community.general
+    version: 13.4.0

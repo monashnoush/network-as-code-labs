@@ -1,0 +1,10 @@
+---
+# Pre-flight checks and backup. Run on its own, or as the first stage of site.yml.
+#   ansible-playbook playbooks/00_common.yml --limit P01_9k
+#   ansible-playbook playbooks/00_common.yml --tags preflight
+#   ansible-playbook playbooks/00_common.yml --tags backup
+- name: Pre-flight checks and backup
+  hosts: all
+  gather_facts: false
+  roles:
+    - role: common

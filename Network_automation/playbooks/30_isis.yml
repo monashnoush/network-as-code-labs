@@ -1,0 +1,9 @@
+---
+- name: Stage 30 — isis
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_command_timeout: 180
+
+  roles:
+    - isis

@@ -1,0 +1,23 @@
+# Example only - keep your existing inventory/hosts.
+# Each device needs ansible_network_os; put it in group_vars, not per host.
+[iosxr]
+P01_9k
+PE01_9k
+RR_9k
+
+[iosxe]
+P02_xe
+PE02_xe
+
+[iosxr:vars]
+ansible_network_os=cisco.iosxr.iosxr
+
+[iosxe:vars]
+ansible_network_os=cisco.ios.ios
+
+[routers:children]
+iosxr
+iosxe
+
+[routers:vars]
+ansible_connection=ansible.netcommon.network_cli

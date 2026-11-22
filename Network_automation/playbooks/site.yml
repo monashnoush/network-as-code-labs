@@ -1,0 +1,14 @@
+---
+# Runs every stage in order. Stages are added as they are built.
+- name: Stage 0 - pre-flight checks and backup
+  ansible.builtin.import_playbook: 00_common.yml
+- name: Stage 1 - interfaces
+  ansible.builtin.import_playbook: 10_interfaces.yml
+#- name: Stage 2 - IGP (OSPF / ISIS)
+ # ansible.builtin.import_playbook: 20_ospf.yml
+- name: Stage 3 - isis
+  ansible.builtin.import_playbook: 30_isis.yml
+# - name: Stage 4 - eBGP
+#   ansible.builtin.import_playbook: 40_ebgp.yml
+# - name: Stage 5 - verification
+#   ansible.builtin.import_playbook: 50_verify.yml

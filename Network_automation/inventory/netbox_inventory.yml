@@ -1,0 +1,38 @@
+---
+plugin: netbox.netbox.nb_inventory
+api_endpoint: "https://localhost:8000"
+token: "Bearer nbt_qxmdsXxvW8Zc.b8HitJTYRGjOD2enEx1gbJIzlnXk9KDS03vwSwK4"
+validate_certs: false
+api_version_check: false
+
+# Data Extraction Controls
+config_context: true
+oob_ip_as_primary_ip: true
+interfaces: true
+
+# Cache Settings
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_timeout: 3600
+cache_connection: "/home/.ansible/inventory/.netbox_cache"
+
+# Grouping & Filtering
+group_by:
+  - sites
+  - device_roles
+  - platforms
+
+query_filters:
+  - status: active
+
+# Host Variable Mapping
+compose:
+  ansible_network_os: "'cisco.iosxr.iosxr'"
+  ansible_connection: "'ansible.netcommon.network_cli'"
+  ansible_host: "primary_ip4.address.split('/')[0] | default(ansible_host)"
+
+# Group Definitions
+groups:
+  iosxr_routers: "platform is defined and platform.slug is defined and 'cisco' in platform.slug"
+  core_routers: "device_role is defined and device_role.slug is defined and device_role.slug == 'network-devices'"
+  lab_devices: "site is defined and site.slug is defined and site.slug == 'lab-test'"

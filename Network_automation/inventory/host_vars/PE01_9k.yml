@@ -1,0 +1,67 @@
+---
+# Routing Identifiers
+host_name: PE01_9k
+router_id: "10.0.0.2"
+isis_proc: "CORE"
+sid_id: "16002"
+isis_net: "49.0001.0000.0000.0002.00"
+
+# 1. Layer 1 / Layer 2 Interface Properties (cisco.iosxr.iosxr_interfaces)
+l2_interfaces:
+  - name: Loopback0
+    description: "Router_id"
+    enabled: true
+
+  - name: GigabitEthernet0/0/0/1
+    description: "TO_RR"
+    enabled: true
+
+  - name: Bundle-Ether112
+    description: "TO_P02_xe"
+
+    enabled: true
+
+  - name: GigabitEthernet0/0/0/2
+    description: "TO_P02_xe - LAG Member BE112"
+    enabled: true
+
+  - name: MgmtEth0/RP0/CPU0/0
+    description: "Out-of-Band Management"
+    enabled: true
+
+# 2. Layer 3 IP Properties in CIDR notation (cisco.iosxr.iosxr_l3_interfaces)
+l3_interfaces:
+  - name: Loopback0
+    ipv4:
+      - address: 10.0.0.2/32
+
+  - name: Bundle-Ether112
+    ipv4:
+      - address: 10.11.2.2/30
+
+  - name: GigabitEthernet0/0/0/1
+    ipv4:
+      - address: 10.2.10.1/30
+
+  - name: MgmtEth0/RP0/CPU0/0
+    ipv4:
+      - address: 192.168.0.2/24
+
+# 3. Bundle / LAG Member Assignments (cisco.iosxr.iosxr_lag_interfaces)
+lag_interfaces:
+  - name: Bundle-Ether112
+    members:
+      - member: GigabitEthernet0/0/0/2
+        mode: active
+
+# 4. IS-IS Routing Process Interface Bindings
+isis_interfaces:
+  - name: Loopback0
+    passive: true
+    circuit_type: level-2-only
+  - name: Bundle-Ether112
+    point_to_point: true
+    circuit_type: level-2-only
+  - name: GigabitEthernet0/0/0/1
+    point_to_point: true
+    circuit_type: level-2-only
