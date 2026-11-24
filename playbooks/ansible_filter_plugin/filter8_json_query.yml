@@ -1,5 +1,4 @@
 ---
-# This script uses filter_plugin: default,omit,ternary
   - name: module04_exctract interfaces, and UP interfaces using map & json_query
     hosts: PE02_xe
     gather_facts: no
@@ -38,3 +37,13 @@
                     | regex_findall('(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
                     | length
                   }}
+      - name: Count BGP neighbors from raw output using pyats_parse
+        ansible.utils.cli_parse:
+          command: show bgp summary
+          parser:
+            name: ansible.netcommon.pyats
+        register: bgp_parse
+      
+      - name: Print parsed data
+        ansible.builtin.debug:
+            msg: "{{ bgp_parse.parsed }}"

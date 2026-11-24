@@ -1,0 +1,4 @@
+- ['BGP router identifier 10.0.0.12, local AS number 65000', 'BGP table version is
+    1, main routing table version 1', '', Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ
+    OutQ Up/Down  State/PfxRcd, 10.0.0.10       4        65000   10835   11928        1    0    0
+    1w0d            0]

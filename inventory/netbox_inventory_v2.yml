@@ -1,0 +1,46 @@
+---
+plugin: netbox.netbox.nb_inventory
+api_endpoint: "http://localhost"
+token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+auth_bearer: true
+validate_certs: false
+api_version_check: false
+config_context: true
+oob_ip_as_primary_ip: true
+interfaces: true
+cache: true
+cache_plugin: jsonfile
+cache_timeout: 3600
+cache_connection: /home/nashnoush/.ansible/inventory/.netbox_cache
+query_filters:
+  - status: active
+compose:
+  ansible_network_os: >-
+    {{
+      {
+        'cisco-iosxr': 'cisco.iosxr.iosxr',
+        'cisco-iosxe': 'cisco.ios.ios',
+        'cisco-nxos':  'cisco.nxos.nxos',
+        'juniper-junos': 'junipernetworks.junos.junos',
+        'arista-eos':  'arista.eos.eos'
+      }[platform.slug] | default('unknown')
+    }}
+  ansible_connection: >-
+    {{
+      {
+        'juniper-junos': 'ansible.netcommon.netconf',
+        'arista-eos':    'ansible.netcommon.httpapi'
+      }[platform.slug] | default('ansible.netcommon.network_cli')
+    }}
+groups:
+  # ---- Platform-wide groups ----
+  iosxr: "platform.slug == 'cisco-iosxr'"
+  jnos: "platform.slug == 'juniper-junos'"
+
+  # ---- Role/model-specific groups (matched by device name) ----
+  ASR_CORE: "'ASR9910' in (name | upper)"
+  Juniper_CORE: "'MX10004' in (name | upper)"
+  RR: "'ASR9010' in (name | upper)"
+  MGMT_SW: "'C9300' in (name | upper)"
+  Peering_SW: "'C9500' in (name | upper)"
+  IX_POP: "'PTX10001' in (name | upper)"

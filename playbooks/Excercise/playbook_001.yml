@@ -1,6 +1,6 @@
 ---
 - name: EXc001 apply gather data
-  hosts: xrv1
+  hosts: P01_9k
   gather_facts: false
   tasks:
     - name: Collect platform resources
